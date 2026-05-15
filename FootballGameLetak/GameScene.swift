@@ -6,11 +6,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var score = 0
     var dScore = 0
     
-    var pScoreLabel = SKLabelNode()
-    var dScoreLabel = SKLabelNode()
+    var pScoreLabel = SKLabelNode(fontNamed: "Arial-Bold")
+    var dScoreLabel = SKLabelNode(fontNamed: "Arial-Bold")
     
-    var time = 8
-    var timeLabel = SKLabelNode()
+    var time = 60
+    var timeLabel = SKLabelNode(fontNamed: "Arial-Bold")
     
     
     override func sceneDidLoad() {
@@ -135,46 +135,81 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func gameOver() {
-        removeAction(forKey: "gameTimer")
-        player.removeAllActions()
-        for defender in defenders {
-            defender.removeAllActions()
-        }
-        isUserInteractionEnabled = false
-        let dark = SKSpriteNode(color: .black,
-                                size: CGSize(width: frame.width,
-                                             height: frame.height))
-        dark.alpha = 0.8
-        dark.position = CGPoint(x: frame.midX, y: frame.midY)
-        dark.zPosition = 500
-        addChild(dark)
+//        removeAction(forKey: "gameTimer")
+//        player.removeAllActions()
+//        for defender in defenders {
+//            defender.removeAllActions()
+//        }
+//        isUserInteractionEnabled = false
+//        let dark = SKSpriteNode(color: .black,
+//                                size: CGSize(width: frame.width,
+//                                             height: frame.height))
+//        dark.alpha = 0.8
+//        dark.position = CGPoint(x: frame.midX, y: frame.midY)
+//        dark.zPosition = 500
+//        addChild(dark)
+//        let gameOverLabel = SKLabelNode(fontNamed: "Arial-Bold")
+//        gameOverLabel.text = "GAME OVER"
+//        gameOverLabel.fontSize = 70
+//        gameOverLabel.position = CGPoint(x: 0, y: 100)
+//        gameOverLabel.zPosition = 501
+//        addChild(gameOverLabel)
+//        let restart = SKLabelNode(fontNamed: "Arial")
+//        restart.text = "Restart"
+//        restart.name = "restartButton"
+//        restart.fontSize = 50
+//        restart.position = CGPoint(x: 0, y: -30)
+//        restart.zPosition = 501
+//        let fadeOut = SKAction.fadeAlpha(to: 0.2, duration: 0.15)
+//        let fadeIn = SKAction.fadeAlpha(to: 1.0, duration: 0.15)
+//
+//        let flash = SKAction.sequence([fadeOut, fadeIn])
+//
+//        gameOverLabel.run(SKAction.repeatForever(flash))
         let gameOverLabel = SKLabelNode(fontNamed: "Arial-Bold")
         gameOverLabel.text = "GAME OVER"
         gameOverLabel.fontSize = 70
         gameOverLabel.position = CGPoint(x: 0, y: 100)
         gameOverLabel.zPosition = 501
         addChild(gameOverLabel)
-        let restart = SKLabelNode(fontNamed: "Arial")
-        restart.text = "Restart"
-        restart.name = "restartButton"
-        restart.fontSize = 50
-        restart.position = CGPoint(x: 0, y: -30)
+        let wait = SKAction.wait(forDuration: 2.0)
+        let remove = SKAction.removeFromParent()
+        gameOverLabel.run(SKAction.sequence([wait, remove]))
+        let restart = SKLabelNode(fontNamed: "Arial-Bold")
+        restart.text = "PLAY AGAIN"
+        restart.fontSize = 70
+        restart.position = CGPoint(x: 0, y: 0)
         restart.zPosition = 501
         addChild(restart)
+        let w = SKAction.wait(forDuration: 2.0)
+        let r = SKAction.removeFromParent()
+        restart.run(SKAction.sequence([wait, remove]))
+        //addChild(restart)
         isUserInteractionEnabled = true
+        
+        
+        time = 62
+        score = 0
+        pScoreLabel.text = "\(score)"
+        
+        dScore = 0
+        
+        dScoreLabel.text = "\(dScore)"
+        reset()
+        
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else {
-            return
-        }
-        let location = touch.location(in: self)
-        let node = atPoint(location)
-        if node.name == "restartButton" {
-            let scene = GameScene(size: self.size)
-            scene.scaleMode = .resizeFill
-            view?.presentScene(scene)
-        }
+//        guard let touch = touches.first else {
+//            return
+//        }
+//        let location = touch.location(in: self)
+//        let node = atPoint(location)
+//        if node.name == "restartButton" {
+//            let scene = GameScene(size: self.size)
+//            scene.scaleMode = .resizeFill
+//            view?.presentScene(scene)
+//        }
     }
     
     var isResetting = false
@@ -184,12 +219,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let nodeA = contact.bodyA.node
             let nodeB = contact.bodyB.node
             
-            if nodeA?.name == "scoreLine" || nodeB?.name == "scoreLine" {
-                score += 1
-//                pScoreLabel = "\(score)"
-//                print("p \(pScoreLabel)")
-                pScoreLabel.text = "\(score)"
-            }
+//            if nodeA?.name == "scoreLine" || nodeB?.name == "scoreLine" {
+//                score += 1
+////                pScoreLabel = "\(score)"
+////                print("p \(pScoreLabel)")
+//                pScoreLabel.text = "\(score)"
+//            }
+        
+        if (nodeA == player && nodeB?.name == "scoreLine") ||
+           (nodeB == player && nodeA?.name == "scoreLine") {
+
+            score += 1
+            pScoreLabel.text = "\(score)"
+        }
             
             if nodeA == player || nodeB == player {
                 //print("hit")
@@ -238,39 +280,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func startDefenderMovement(_ defender: SKSpriteNode) {
 ////        let left = SKAction.moveBy(x: -300, y: 0, duration: 2)
 ////        let right = SKAction.moveBy(x: 300, y: 0, duration: 2)
-//        
+//
 //        let left = SKAction.moveTo(x: -260, duration: 2)
 //        let right = SKAction.moveTo(x: 260, duration: 2)
-//        
+//
 //        //SKAction.moveTo(x: 300, duration: 2)
 //        let patrol = SKAction.sequence([left, right])
 //        defender.run(SKAction.repeatForever(patrol))
         
         let randomSpeed = Double.random(in: 1.2...3.0)
-
            // keep defenders inside screen edges
            let leftEdge = -frame.width/2 + defender.size.width
            let rightEdge = frame.width/2 - defender.size.width
-
            let left = SKAction.moveTo(
                x: CGFloat.random(in: leftEdge...0),
                duration: randomSpeed
            )
-
            let right = SKAction.moveTo(
                x: CGFloat.random(in: 0...rightEdge),
                duration: randomSpeed
            )
-
            let wait = SKAction.wait(
                forDuration: Double.random(in: 0.1...0.5)
            )
-
            let patrol = SKAction.sequence([left, wait, right, wait])
-
            defender.run(SKAction.repeatForever(patrol))
         
         
     }
 }
+
 
